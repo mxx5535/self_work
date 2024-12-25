@@ -12,6 +12,7 @@
 # @Project : education_chatbot
 import os
 
+os.environ['OPENAI_API_VERSION'] = "2023-05-15"
 from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager
 from rag_main import MyRetrieveUserProxyAgent
 from rag_main import openai_ef, vector_db
@@ -112,8 +113,16 @@ def standrad_answer(llms_result: Annotated[str, "the result of llms return"]) ->
     else:
         return 'False' + 'TERMINATE'
 
-
-llm_config = {"config_list": [{"model": "gpt-4o-mini", "api_key": "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"}]}
+llm_config = {
+    "config_list": [
+        {
+            "api_type": "azure",
+            "model": "test-az-eus-gpt-4o",
+            "api_key": "02855675d52d4abfa48868c00c6f2773",
+            "base_url": "https://test-az-eus-ai-openai01.openai.azure.com/"
+        }
+    ]
+}
 
 # 创建课程助手代理
 class_assistant = AssistantAgent(

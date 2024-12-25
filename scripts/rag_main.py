@@ -4,6 +4,9 @@
 # @Email : lijinze@lzzg365.cn
 # @File : rag_main.py
 # @Project : education_chatbot
+import os
+
+os.environ['OPENAI_API_VERSION'] = "2023-05-15"
 from autogen.agentchat.contrib.vectordb.base import Document, QueryResults, VectorDB, VectorDBFactory
 from autogen.agentchat.contrib.vectordb.chromadb import ChromaVectorDB
 from autogen.agentchat.contrib.retrieve_user_proxy_agent import RetrieveUserProxyAgent
@@ -138,7 +141,16 @@ class MyRetrieveUserProxyAgent(RetrieveUserProxyAgent):
                 break
         return doc_contents
 
-config_list = [{"model": "gpt-4o-mini", "api_key": "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"}]
+llm_config = {
+    "config_list": [
+        {
+            "api_type": "azure",
+            "model": "test-az-eus-gpt-4o",
+            "api_key": "02855675d52d4abfa48868c00c6f2773",
+            "base_url": "https://test-az-eus-ai-openai01.openai.azure.com/"
+        }
+    ]
+}
 
 # 使用正确的模型名来确保维度一致
 openai_ef = ef.OpenAIEmbeddingFunction(
@@ -149,7 +161,7 @@ openai_ef = ef.OpenAIEmbeddingFunction(
 assistant = AssistantAgent(
     name="assistant",
     system_message="You are a helpful assistant.",
-    llm_config={"config_list": config_list, "timeout": 60, "temperature": 0}
+    llm_config=llm_config
 )
 
 vector_db = ChromaVectorDB(client=chromadb.PersistentClient(path="../data/vector_db/qiniu_db/chromadb"), embedding_function = openai_ef)
@@ -160,7 +172,7 @@ ragproxyagent = MyRetrieveUserProxyAgent(
     max_consecutive_auto_reply=3,
     retrieve_config={
         "task": "qa",  # "code", "qa" 和 "default"
-        "model": config_list[0]["model"],
+        "model": "test-az-eus-gpt-4o",
         "vector_db": vector_db,
         "collection_name": "qiniu_db_collection",
         "embedding_function": openai_ef,  # 确保此处使用正确的嵌入模型
