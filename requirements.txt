@@ -1,3 +1,4 @@
+chromadb
 autogen
 pandas
 openai
