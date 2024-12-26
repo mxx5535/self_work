@@ -147,6 +147,7 @@ llm_config = {
             "api_type": "azure",
             "model": "test-az-eus-gpt-4o",
             "api_key": "02855675d52d4abfa48868c00c6f2773",
+            "api_version": "2023-05-15",
             "base_url": "https://test-az-eus-ai-openai01.openai.azure.com/"
         }
     ]
@@ -154,8 +155,11 @@ llm_config = {
 
 # 使用正确的模型名来确保维度一致
 openai_ef = ef.OpenAIEmbeddingFunction(
-                api_key="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",
-                model_name="text-embedding-ada-002"  # 确保这是返回1536维的模型
+                api_key="3065b5b872084362b3785e210f973c51",
+                model_name="prod-az-ce-ai-openai07-text-embedding-ada-002",  # 确保这是返回1536维的模型
+                api_base="https://prod-az-ce-ai-openai07.openai.azure.com/",
+                api_type="azure",
+                api_version="2023-05-15"
             )
 
 assistant = AssistantAgent(
@@ -172,7 +176,7 @@ ragproxyagent = MyRetrieveUserProxyAgent(
     max_consecutive_auto_reply=3,
     retrieve_config={
         "task": "qa",  # "code", "qa" 和 "default"
-        "model": "test-az-eus-gpt-4o",
+        # "model": llm_config['config_list'][0]['model'],
         "vector_db": vector_db,
         "collection_name": "qiniu_db_collection",
         "embedding_function": openai_ef,  # 确保此处使用正确的嵌入模型
