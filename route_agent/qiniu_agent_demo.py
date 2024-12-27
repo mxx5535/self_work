@@ -63,7 +63,7 @@ def rag_tool(query:str):
     :param query:
     :return:
     '''
-    return "好的"
+    return "自主判断，回答用户问题 TERMINATE"
 
 # 定义大模型
 model_client = AzureOpenAIChatCompletionClient(
@@ -144,7 +144,7 @@ other_rag_agent = AssistantAgent(
 )
 
 text_mention_termination = TextMentionTermination("TERMINATE")
-max_messages_termination = MaxMessageTermination(max_messages=25)
+max_messages_termination = MaxMessageTermination(max_messages=10)
 termination = text_mention_termination | max_messages_termination
 
 team = SelectorGroupChat(
@@ -153,9 +153,9 @@ team = SelectorGroupChat(
     termination_condition=termination,
 )
 
-# task = "你好"
+task = "有回放吗"
 # task = "快递现在到哪里了"
-task = '千尺这门课几点开课啊'
+# task = '千尺这门课几点开课啊'
 # Use asyncio.run(...) if you are running this in a script.
 asyncio.run(Console(team.run_stream(task=task)))
 
