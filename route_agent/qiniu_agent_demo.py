@@ -1,4 +1,5 @@
 import asyncio
+import json
 from typing import Sequence
 
 from autogen_agentchat.agents import AssistantAgent
@@ -15,13 +16,13 @@ def search_express_tool(query:str):
     :return:
     '''
 
-    return {
+    return json.dumps({
         "corp_name": "顺丰",
         "expose_status": 1,
         "source_city": "北京",
         "derminate_city": "上海",
         "current_city": "郑州"
-    }
+    })
 
 def search_course_tool(query:str):
     '''
@@ -30,32 +31,32 @@ def search_course_tool(query:str):
     :return:
     '''
     if '讲真' in query:
-        return {
+        return json.dumps({
             "lession_name": query,
             "date_begin_time": '2024-12-01',
             "date_end_time": '2024-12-15',
             "learn_start_time": '19: 00',
             "learn_end_time": '21: 00',
             "teacher_name": 'Tonny'
-        }
+        })
     elif '千尺' in query:
-        return {
+        return json.dumps({
             "lession_name": query,
             "date_begin_time": '2024-11-01',
             "date_end_time": '2024-11-15',
             "learn_start_time": '19: 00',
             "learn_end_time": '21: 00',
             "teacher_name": 'Tom'
-        }
+        })
     else:
-        return {
+        return json.dumps({
             "lession_name": query,
             "date_begin_time": '2024-10-01',
             "date_end_time": '2024-10-15',
             "learn_start_time": '19: 00',
             "learn_end_time": '21: 00',
             "teacher_name": 'Sun'
-        }
+        })
 
 def rag_tool(query:str):
     '''
@@ -143,12 +144,25 @@ other_rag_agent = AssistantAgent(
     """,
 )
 
+# 注册第5个agent
+tool_summary_agent = AssistantAgent(
+    "SummaryAgent",
+    description="An agent summary the results of CourseInformationAgent or ExpressInformationAgent excution tool",
+    model_client=model_client,
+    system_message="""
+    你是一个人工智能小助手
+    你负责将CourseInformationAgent以及ExpressInformationAgent返回的工具回答进行总结
+    将总结结果返回，注意总结结果的末尾要加TERMINATE
+    """,
+)
+
+
 text_mention_termination = TextMentionTermination("TERMINATE")
 max_messages_termination = MaxMessageTermination(max_messages=10)
 termination = text_mention_termination | max_messages_termination
 
 team = SelectorGroupChat(
-    [planning_agent, course_information_agent, express_information_agent,other_rag_agent],
+    [planning_agent, course_information_agent, express_information_agent,other_rag_agent, tool_summary_agent],
     model_client=model_client,
     termination_condition=termination,
 )
@@ -157,6 +171,9 @@ task = "有回放吗"
 # task = "快递现在到哪里了"
 # task = '千尺这门课几点开课啊'
 # Use asyncio.run(...) if you are running this in a script.
-asyncio.run(Console(team.run_stream(task=task)))
+# result = asyncio.run(Console(team.run_stream(task=task)))
+
+result = asyncio.run(Console(team.run_stream(task=task)))
+print(result.messages[-1].content)
 
 
