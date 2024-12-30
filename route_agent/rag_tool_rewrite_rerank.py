@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+# @Time : 2024/12/30 17:49
+# @Author : lijinze
+# @Email : lijinze@lzzg365.cn
+# @File : rag_tool_rewrite_rerank.py
+# @Project : self_work
 import asyncio
 from typing import Sequence
 
@@ -7,6 +13,13 @@ from autogen_agentchat.conditions import SourceMatchTermination, TextMentionTerm
 from autogen_agentchat.teams import Swarm
 from autogen_agentchat.ui import Console
 from autogen_ext.models.openai import AzureOpenAIChatCompletionClient
+
+from chats.azure_chat import AzureChatOpenAI
+from embeddings.embeddings import BGEEmbedding
+from vectorstores.vectorstores import MyFaissVectorstore
+from prompt_templates.geralprompt import GeneratePrompt
+from risk.rule_risk import KeyWordFilter
+from chains.rag_chain import RAGChain
 
 def search_express_tool(query:str):
     '''
@@ -57,14 +70,37 @@ def search_course_tool(query:str):
             "teacher_name": 'Sun'
         }
 
-def rag_tool(query:str):
+def rag_tool(query: str):
     '''
     其他问题通过rag调用回答，具体实现逻辑省略
     :param query:
     :return:
     '''
     print("query:", query)
-    return "自主判断，回答用户问题 TERMINATE"
+    kwargs = {
+        'index_name': 'qiniu_20241228',
+        'query': query,
+        'top_k': 10,
+        'filter': None,
+        'prompt_kwargs': {
+            'question': query,  # query
+        },
+        'sensitive_words': ['骗钱']
+    }
+
+    # 执行
+    chat = AzureChatOpenAI()
+    faiss_vectorstore = MyFaissVectorstore()
+    bge_embedding = BGEEmbedding()
+    generate_prompt = GeneratePrompt()
+    content_filter = KeyWordFilter()
+    rag_chain = RAGChain(faiss_vectorstore, bge_embedding, chat, content_filter, generate_prompt)
+
+    result = rag_chain.invoke(**kwargs)
+
+    print("result:", result)
+
+    return result + " TERMINATE"
 
 # 定义大模型
 model_client = AzureOpenAIChatCompletionClient(
@@ -172,9 +208,6 @@ text_mention_termination = TextMentionTermination("TERMINATE")
 max_messages_termination = MaxMessageTermination(max_messages=15)
 # max_messages_termination = SourceMatchTermination(['StartInformationAgent', 'ExpressInformationAgent', 'OtherQuestinoAgent'])
 termination = text_mention_termination | max_messages_termination
-
-# termination = MaxMessageTermination(10)
-
 
 team = Swarm([planning_agent, start_time_information_agent, express_information_agent, other_rag_agent, summary_agent], termination_condition=termination)
 
