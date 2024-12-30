@@ -81,13 +81,13 @@ planning_agent = AssistantAgent(
     "PlanningAgent",
     description="An agent for planning tasks, this agent should be the first to engage when given a new task.",
     model_client=model_client,
-    handoffs=['CourseInformationAgent', 'ExpressInformationAgent', 'OtherQuestinoAgent'],
+    handoffs=['StartInformationAgent', 'ExpressInformationAgent', 'OtherQuestinoAgent'],
     system_message="""
     You are a planning agent.
     Your team members are:
-        CourseInformationAgent: Query questions related to course start information
+        StartInformationAgent: 只负责回答课程开始时间相关信息，其他课程相关信息不负责回答
         ExpressInformationAgent: Query express related questions
-        OtherQuestinoAgent：A backstop agent that solves problems unrelated to other agents
+        OtherQuestinoAgent：What StartInformationAgent and ExpressInformationAgent can't solve needs to be solved
     You only plan and delegate tasks - you do not execute them yourself.
 
     When assigning tasks, use this format:
@@ -96,9 +96,9 @@ planning_agent = AssistantAgent(
 )
 
 # 注册第二个agent
-course_information_agent = AssistantAgent(
-    "CourseInformationAgent",
-    description="An agent who knows when the course starts.",
+start_time_information_agent = AssistantAgent(
+    "StartInformationAgent",
+    description="An agent who knows when the course starts.but Course start time information only, no other course information",
     tools=[search_course_tool],
     handoffs=['SummaryAgent'],
     model_client=model_client,
@@ -170,17 +170,18 @@ summary_agent = AssistantAgent(
 
 text_mention_termination = TextMentionTermination("TERMINATE")
 max_messages_termination = MaxMessageTermination(max_messages=15)
-# max_messages_termination = SourceMatchTermination(['CourseInformationAgent', 'ExpressInformationAgent', 'OtherQuestinoAgent'])
+# max_messages_termination = SourceMatchTermination(['StartInformationAgent', 'ExpressInformationAgent', 'OtherQuestinoAgent'])
 termination = text_mention_termination | max_messages_termination
 
 # termination = MaxMessageTermination(10)
 
 
-team = Swarm([planning_agent, course_information_agent, express_information_agent,other_rag_agent,summary_agent], termination_condition=termination)
+team = Swarm([planning_agent, start_time_information_agent, express_information_agent, other_rag_agent, summary_agent], termination_condition=termination)
 
 # task = "书免费吗"
-task = "快递现在到哪里了"
+# task = "快递现在到哪里了"
 # task = '千尺这门课几点开课啊'
+task = '千尺几点开课'
 # Use asyncio.run(...) if you are running this in a script.
 asyncio.run(Console(team.run_stream(task=task)))
 
