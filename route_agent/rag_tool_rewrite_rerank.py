@@ -12,7 +12,7 @@ from autogen_agentchat.conditions import SourceMatchTermination, TextMentionTerm
 # from autogen_agentchat.messages import AgentEvent, ChatMessage
 from autogen_agentchat.teams import Swarm
 from autogen_agentchat.ui import Console
-from autogen_ext.models.openai import AzureOpenAIChatCompletionClient
+from autogen_ext.models.openai import AzureOpenAIChatCompletionClient, OpenAIChatCompletionClient
 
 from chats.azure_chat import AzureChatOpenAI
 from embeddings.embeddings import BGEEmbedding
@@ -103,14 +103,25 @@ def rag_tool(query: str):
     return result + " TERMINATE"
 
 # 定义大模型
-model_client = AzureOpenAIChatCompletionClient(
-    azure_deployment="test-az-eus-gpt-4o",
-    model="gpt-4o",
-    api_version="2023-05-15",
-    azure_endpoint="https://test-az-eus-ai-openai01.openai.azure.com/",
-    # azure_ad_token_provider=token_provider,  # Optional if you choose key-based authentication.
-    api_key="02855675d52d4abfa48868c00c6f2773", # For key-based authentication.
-)
+# model_client = AzureOpenAIChatCompletionClient(
+#     azure_deployment="test-az-eus-gpt-4o",
+#     model="gpt-4o",
+#     api_version="2023-05-15",
+#     azure_endpoint="https://test-az-eus-ai-openai01.openai.azure.com/",
+#     # azure_ad_token_provider=token_provider,  # Optional if you choose key-based authentication.
+#     api_key="02855675d52d4abfa48868c00c6f2773", # For key-based authentication.
+# )
+
+model_client = OpenAIChatCompletionClient(
+        model="qwen2.5:7b",
+        api_key="NotRequiredSinceWeAreLocal",
+        base_url="http://0.0.0.0:4000",
+        model_capabilities={
+            "json_output": False,
+            "vision": False,
+            "function_calling": True,
+        },
+    )
 
 
 # 注册agent

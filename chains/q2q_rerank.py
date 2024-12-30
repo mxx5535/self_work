@@ -27,7 +27,7 @@ class QRetrievalChainWithRerank(QRetrievalChain):
         retrieval_questions = []
         retrieval_details = []
         for rewrite_query in rewrite_queries:
-            query_embedding = self.embedding.embed_documents([rewrite_query])[0]
+            query_embedding = self.embedding.embed_document(rewrite_query)
             retrieval_result = self.vectorstore.search(index_name=index_name, embedding=query_embedding, top_k=top_k or 10,
                                              filter=filter)
 
