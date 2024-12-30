@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteMappingsManager">
+    <list>
+      <list>
+        <remote-mappings server-id="python@sftp://root@connect.cqa1.seetacloud.com:23265/root/miniconda3/envs/ai_qiniu_chatbot/bin/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/root/autodl-tmp/self_work" />
+            </list>
+          </settings>
+        </remote-mappings>
+      </list>
+    </list>
+  </component>
+</project>
