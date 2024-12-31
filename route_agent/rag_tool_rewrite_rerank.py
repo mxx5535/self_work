@@ -19,6 +19,9 @@ from embeddings.embeddings import BGEEmbedding
 from vectorstores.vectorstores import MyFaissVectorstore
 from prompt_templates.geralprompt import GeneratePrompt
 from risk.rule_risk import KeyWordFilter
+from reranker.bge import BGEReranker
+from chats.rewrite import BaseRewriter
+from chains.rag_rewrite_rerank_chain import RAGChainWithRewriteRerank
 from chains.rag_chain import RAGChain
 
 def search_express_tool(query:str):
@@ -84,6 +87,8 @@ def rag_tool(query: str):
         'filter': None,
         'prompt_kwargs': {
             'question': query,  # query
+            'camp_date_start_time': '后天',
+            'current_day_str': '2月25日'
         },
         'sensitive_words': ['骗钱']
     }
@@ -94,9 +99,11 @@ def rag_tool(query: str):
     bge_embedding = BGEEmbedding()
     generate_prompt = GeneratePrompt()
     content_filter = KeyWordFilter()
-    rag_chain = RAGChain(faiss_vectorstore, bge_embedding, chat, content_filter, generate_prompt)
+    rewriter = BaseRewriter(chat)
+    reranker = BGEReranker()
+    rag_chain_with_rewrite_rerank = RAGChainWithRewriteRerank(faiss_vectorstore, bge_embedding, chat, content_filter, generate_prompt, rewriter, reranker)
 
-    result = rag_chain.invoke(**kwargs)
+    result = rag_chain_with_rewrite_rerank.invoke(**kwargs)
 
     print("result:", result)
 
@@ -222,10 +229,10 @@ termination = text_mention_termination | max_messages_termination
 
 team = Swarm([planning_agent, start_time_information_agent, express_information_agent, other_rag_agent, summary_agent], termination_condition=termination)
 
-task = "书免费吗"
-# task = "快递现在到哪里了"
-# task = '千尺这门课几点开课啊'
-# task = '千尺几点开课'
+# task = "书免费吗"      # 100%准确
+# task = "快递现在到哪里了"  # 100%准确
+# task = '千尺这门课几点开课啊'  # 100%准确
+task = '有回放吗？'      # 100%准确
 # Use asyncio.run(...) if you are running this in a script.
 asyncio.run(Console(team.run_stream(task=task)))
 
